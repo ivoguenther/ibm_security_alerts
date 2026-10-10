@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ibm-security-bulletin"
+version = "0.1.0"
+description = "Extract raw CVE entries and bulletin data from IBM Security Bulletins"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Developer" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Topic :: Security",
+]
+
+[project.scripts]
+ibm-bulletin = "ibm_security_bulletin.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["ibm_security_bulletin*"]
