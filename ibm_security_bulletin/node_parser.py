@@ -45,6 +45,16 @@ PTF_TABLE_COLUMNS = [
 
 # A PTF number like SJ11497, SF10345, SI13945 (1-4 letters then 3-7 digits).
 _PTF_TOKEN = re.compile(r"[A-Za-z]{1,4}\d{3,7}")
+# A PTF entry: the PTF number plus an optional trailing " - NN" level, e.g.
+# "SF99952 - 01" (or ", NN"). Multiple such entries are separated by
+# <br>/comma/whitespace. ASCII separators only ('-' and ','), which is what the
+# IBM data uses.
+_PTF_ENTRY = re.compile(
+    r"(?P<ptf>[A-Za-z]{1,4}\d{3,7})"
+    r"(?P<lvl>(?:[ \t]*[-,][ \t]*(?:level[ \t]*)?\d{1,4}))?"
+)
+# An IBM i release/version like 7.6, 7.4.1, V7R2 -> 7.2.
+_VERSION = re.compile(r"\d+\.\d+\.\d+|\d+\.\d+|V\d+R\d+")
 # SW level token embedded in the PTF column header, e.g. 5770-SS1 / 5770-TC1.
 _SW_LVL = re.compile(r"\d{4}-[A-Za-z]+\d?")
 # The remediation field div class on IBM node pages.
@@ -203,7 +213,11 @@ def _cell_text(cell: Dict[str, Any]) -> str:
 
 
 def _split_ptfs(text: str) -> List[str]:
-    """Extract PTF numbers from a cell, upper-cased, preserving order."""
+    """Extract bare PTF numbers from a cell, upper-cased, preserving order.
+
+    Used for content sniffing only; see :func:`extract_ptf_entries` for the
+    PTF+level extraction used when building records.
+    """
     seen: set = set()
     out: List[str] = []
     for m in _PTF_TOKEN.findall(text):
@@ -214,24 +228,97 @@ def _split_ptfs(text: str) -> List[str]:
     return out
 
 
-def _normalize_release(raw: str) -> str:
-    """Collapse a release cell to a clean value (e.g. '7.6')."""
-    raw = raw.replace("\n", " ")
-    raw = re.sub(r"\s+", " ", raw).strip()
-    return raw
+def extract_versions(raw: str) -> List[str]:
+    """Split a release cell into a list of clean version numbers.
+
+    Handles multi-release cells like '7.4 7.3 7.2' and 'V7R2' style text,
+    returning a de-duplicated, order-preserving list such as
+    ``['7.4', '7.3', '7.2']`` or ``['7.2']``. An unparseable (but non-empty)
+    cell falls back to its trimmed text so PTF/fix data is never dropped.
+    """
+    out: List[str] = []
+    for m in _VERSION.finditer(raw or ""):
+        tok = m.group(0)
+        if tok[:1] == "V":
+            tok = re.sub(r"[Rr]", ".", tok[1:])  # '7R2' -> '7.2'
+        if tok not in out:
+            out.append(tok)
+    return out
+
+
+def normalize_release(raw: str) -> List[str]:
+    """Return the list of per-version values to emit for a release cell.
+
+    Produces one clean version per OS release; falls back to the trimmed raw
+    text when no version token can be parsed.
+    """
+    versions = extract_versions(raw)
+    if versions:
+        return [v for v in versions]
+    fallback = re.sub(r"\s+", " ", (raw or "").replace("\n", " ")).strip()
+    return [fallback] if fallback else [""]
+
+
+def extract_ptf_entries(raw: str) -> List[str]:
+    """Extract PTF entries (number plus optional '- NN' level) from a cell.
+
+    Multiple PTFs separated by <br>/comma/whitespace are returned as separate
+    entries, e.g. ``'SF99952 - 01'`` stays as one entry ``'SF99952 - 01'`` and
+    ``'PTF_A PTF_B'`` yields ``['PTF_A', 'PTF_B']``. Order-preserving and
+    de-duplicated.
+    """
+    out: List[str] = []
+    for m in _PTF_ENTRY.finditer(raw or ""):
+        number = m.group("ptf").upper()
+        entry = number
+        lvl = m.groupdict().get("lvl")
+        if lvl:
+            digit = re.search(r"\d{1,4}", lvl)
+            if digit:
+                entry = f"{number} - {digit.group(0)}"
+        if entry not in out:
+            out.append(entry)
+    return out
+
+
+def extract_ptf_base(ptf_entry: str) -> str:
+    """Return the bare PTF number (no level) from an entry like 'SF99952 - 01'."""
+    m = _PTF_TOKEN.match(ptf_entry or "")
+    return m.group(0).upper() if m else (ptf_entry or "").strip()
 
 
 def _collect_links(row: List[Dict[str, Any]], column_indices: List[int]) -> List[str]:
-    """Gather ``fix-information`` hrefs from the given row columns, in order."""
+    """Gather download hrefs from the given row columns, in order, de-duplicated.
+
+    Keeps ``fix-information`` links first but retains any ``http`` link (the
+    same fix may be published at a ``/support/pages/...`` URL), so a real link
+    is preferred over a synthesized one.
+    """
     links: List[str] = []
     for idx in column_indices:
         if 0 <= idx < len(row):
             for href in row[idx].get("links", []):
                 h = href.strip()
-                if h and re.search(r"fix-information", h, re.I):
-                    if h not in links:
-                        links.append(h)
+                if h and "http" in h.lower() and h not in links:
+                    links.append(h)
     return links
+
+
+def _pick_link(
+    links: List[str],
+    ptf_entry: str,
+    synthesize: bool = True,
+) -> str:
+    """Pick the best download link for a PTF entry; synthesize if needed."""
+    if not links:
+        if synthesize and ptf_entry:
+            return _DEFAULT_PTF_LINK.format(ptf=extract_ptf_base(ptf_entry))
+        return ""
+    # Prefer a canonical fix-information URL when one is present.
+    for l in links:
+        if "fix-information" in l.lower():
+            return l
+    return links[0]
 
 
 def _extract_sw_lvl(header_texts: Optional[List[str]]) -> str:
@@ -265,47 +352,64 @@ def _classify_columns(
 ) -> Tuple[int, int, int]:
     """Infer (release_col, ptf_col, link_col) for a remediation table.
 
-    Prefers header keywords, then falls back to positional heuristics and
-    content-based hints in the data rows. Always returns in-range column
-    indices for the common 3-column IBM i layout.
+    Detection is *link-first* to avoid the common ambiguity where the words
+    'PTF' and 'Level' appear in non-release headers (e.g. 'Group PTF - Level',
+    'PTF Download Link'). The link column is located first, then the release
+    column, then the PTF column from what remains -- each using header keywords
+    and, on ties/fallback, content hints from the data rows.
     """
     n = 3
-    for r in data_rows:
-        if len(r) > n:
-            n = len(r)
-
-    release_col, ptf_col, link_col = 0, 1, 2
+    pool = [len(r) for r in data_rows]
     if header_texts:
-        for idx, h in enumerate(header_texts):
-            hl = (h or "").lower()
-            if re.search(r"release|version|level", hl) and release_col == 0:
-                release_col = idx
-            if re.search(r"ptf|number", hl):
-                ptf_col = idx
-            if re.search(r"download|link|url|fix-information", hl):
-                link_col = idx
+        pool.append(len(header_texts))
+    n = max(pool) if pool else 3
+
+    def hdr_has(idx: int, pat: str) -> bool:
+        return (
+            header_texts is not None
+            and 0 <= idx < len(header_texts)
+            and bool(re.search(pat, (header_texts[idx] or "").lower()))
+        )
 
     def col_has(idx: int, pred) -> bool:
         return any(0 <= idx < len(r) and pred(_cell_text(r[idx])) for r in data_rows)
 
-    has_url = lambda t: "http" in t.lower() or "fix-information" in t.lower()
+    has_url = lambda t: ("http" in t.lower() or "fix-information" in t.lower())
     has_ptf = lambda t: bool(_split_ptfs(t))
     has_release = lambda t: bool(re.search(r"\d+\.\d+", t))
 
-    headerless = header_texts is None or len(header_texts) < 3
-    if headerless:
-        link_idx = next((i for i in range(0, n) if col_has(i, has_url)), link_col)
-        ptf_idx = next((i for i in range(0, n) if col_has(i, has_ptf)), ptf_col)
-        rel_idx = next((i for i in range(0, n) if col_has(i, has_release)), release_col)
-        if link_idx == ptf_idx:
-            link_idx = n - 1
-        if ptf_idx == rel_idx:
-            ptf_idx = rel_idx + 1 if rel_idx + 1 < n else ptf_idx
-        release_col, ptf_col, link_col = rel_idx, ptf_idx, link_idx
+    # 1) Link column: an explicit 'download' header (strongest), else 'link/url',
+    #    else any column whose content looks like a URL.
+    link_col = next((i for i in range(n) if hdr_has(i, r"download")), None)
+    if link_col is None:
+        link_col = next((i for i in range(n) if hdr_has(i, r"link|url")), None)
+    if link_col is None:
+        link_col = next((i for i in range(n) if col_has(i, has_url)), n - 1)
+    link_col = n - 1 if link_col is None or link_col < 0 or link_col >= n else link_col
 
+    # 2) Release column: header 'release'/'version' OR version-bearing content,
+    #    never the link column.
+    release_col = next((i for i in range(n) if i != link_col and hdr_has(i, r"release|version")), None)
+    if release_col is None:
+        release_col = next((i for i in range(n) if i != link_col and col_has(i, has_release)), 0)
     release_col = 0 if release_col is None or release_col >= n else release_col
-    ptf_col = (release_col + 1) if ptf_col is None or ptf_col >= n else ptf_col
-    link_col = (n - 1) if link_col is None or link_col >= n else link_col
+
+    # 3) PTF column: header 'ptf'/'number' (never link/release), else PTF content,
+    #    else the column after release -- but stay clear of the link column.
+    ptf_col = next(
+        (i for i in range(n) if i not in (link_col, release_col) and hdr_has(i, r"ptf|number")),
+        None,
+    )
+    if ptf_col is None:
+        ptf_col = next(
+            (i for i in range(n) if i not in (link_col, release_col) and col_has(i, has_ptf)),
+            None,
+        )
+    if ptf_col is None:
+        ptf_col = release_col + 1
+        if ptf_col == link_col:
+            ptf_col = link_col - 1
+    ptf_col = n - 1 if ptf_col is None or ptf_col >= n else ptf_col
     if ptf_col == link_col:
         ptf_col = link_col - 1 if link_col - 1 >= 0 else link_col
     return release_col, ptf_col, link_col
@@ -353,6 +457,12 @@ def parse_remediation_ptfs(
         ``ptf_number``.
     :param synthesize_links: When a PTF has no explicit fix-information link,
         build ``.../fix-information?legacy=<PTF>`` from the PTF number.
+
+    Each affected OS release in a cell (e.g. '7.4 7.3 7.2') is expanded into a
+    dedicated record per version, and each record's ``ptf_number`` keeps any
+    trailing PTF level (e.g. 'SF99952 - 01'). The result is one record per
+    (node, version, PTF) pair, de-duplicated.
+
     :return: De-duplicated list of PTF records with the canonical PTF columns
         plus a detected ``product`` tag.
     """
@@ -381,40 +491,45 @@ def parse_remediation_ptfs(
         product = _extract_product(header_texts, release_col)
 
         for r in data_rows:
-            release = _normalize_release(_cell_text(r[release_col])) if release_col < len(r) else ""
+            rel_raw = _cell_text(r[release_col]) if release_col < len(r) else ""
             ptf_raw = _cell_text(r[ptf_col]) if ptf_col < len(r) else ""
-            links = _collect_links(r, [link_col, ptf_col])
-            ptfs = _split_ptfs(ptf_raw)
+            links = _collect_links(r, [link_col, ptf_col, release_col])
+            versions = normalize_release(rel_raw)
+            ptf_entries = extract_ptf_entries(ptf_raw)
 
-            has_content = bool(release or ptfs or links)
+            has_content = bool(versions and versions[0]) or bool(ptf_entries) or bool(links)
             if not has_content:
                 continue
 
-            if not ptfs:
+            if not ptf_entries:
+                # A release/fix row with no concrete PTF (e.g. 'refer to ...').
                 if not include_empty:
                     continue
-                link = links[0] if links else ""
-                key = (node, release, sw_lvl, "", link)
+                link = _pick_link(links, "", synthesize=synthesize_links)
+                base_release = versions[0]
+                key = (node, base_release, sw_lvl, "", link)
                 if key not in seen:
                     seen.add(key)
-                    records.append(_record(node, release, sw_lvl, product, "", link))
+                    records.append(_record(node, base_release, sw_lvl, product, "", link))
                 continue
 
             n_links = len(links)
-            for i, ptf in enumerate(ptfs):
-                if i < n_links:
-                    link = links[i]
-                elif n_links:
-                    link = links[-1]
-                elif synthesize_links:
-                    link = _DEFAULT_PTF_LINK.format(ptf=ptf)
-                else:
-                    link = ""
-                key = (node, release, sw_lvl, ptf, link)
-                if key in seen:
-                    continue
-                seen.add(key)
-                records.append(_record(node, release, sw_lvl, product, ptf, link))
+            # One dedicated record per OS release, crossed with each PTF in the
+            # row; links are matched to PTFs positionally, falling back to a
+            # shared link or a synthesized URL.
+            for release in versions:
+                for i, ptf in enumerate(ptf_entries):
+                    if i < n_links:
+                        link = links[i]
+                    elif n_links:
+                        link = links[-1]
+                    else:
+                        link = _pick_link(links, ptf, synthesize=synthesize_links)
+                    key = (node, release, sw_lvl, ptf, link)
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    records.append(_record(node, release, sw_lvl, product, ptf, link))
 
     return records
 

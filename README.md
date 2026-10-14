@@ -160,6 +160,35 @@ Notes
 - `--include-empty-fixes` also keeps release rows that point to a fix
   procedure textually but list no concrete PTF number.
 
+### Data-quality guarantees
+- **One record per OS release.** A release cell that lists several versions
+  (`7.4 7.3 7.2`) is split into a dedicated record **per version**; each version
+  is paired with every PTF in the row (products list one PTF that covers all
+  listed releases, or several PTFs per release). The `ibm_i_release` value is
+  always a clean version number (`7.6`, `7.4.1`, …) — `V7R2` normalized to `7.2`.
+- **PTF level is kept.** A `PTF - Level` value such as `SF99952 - 01` stays
+  intact in `ptf_number` (`… - 01`), and is *not* leaked into the release field.
+- **Robust column detection.** The PTF and download columns are located by a
+  link-first heuristic that ignores the word `Level`/`PTF` appearing in
+  non-release headers (e.g. `Group PTF - Level`, `PTF Download Link`), which is
+  the usual source of mis-parsed rows.
+- **Real download links are captured**, whether they are the canonical
+  `…/fix-information?legacy=<PTF>` or an IBM `…/support/pages/<ptf>-…` URL; only
+  when there is no link at all is one synthesized.
+
+Concrete examples (from live node pages):
+```
+# node 7242043 — a multi-release cell expands to one record per version
+7242043, 7.4, 5733-SC1, SJ06726, https://www.ibm.com/mysupport/s/fix-information?legacy=SJ06726
+7242043, 7.3, 5733-SC1, SJ06726, https://www.ibm.com/mysupport/s/fix-information?legacy=SJ06726
+7242043, 7.2, 5733-SC1, SJ06726, https://www.ibm.com/mysupport/s/fix-information?legacy=SJ06726
+
+# node 6589203 — the PTF level is kept and the release is a clean version
+6589203, 7.5, , SF99952 - 01, https://www.ibm.com/support/pages/sf99952-750-ibm-http-server-i-level-1
+6589203, 7.4, , SF99662 - 20, https://www.ibm.com/support/pages/sf99662-740-ibm-http-server-i-level-20
+6589203, 7.3, , SF99722 - 39, https://www.ibm.com/support/pages/sf99722-730-ibm-http-server-i-level-39
+```
+
 ### Two-table model (join on `node = nid`)
 
 The bulletin context and the PTF data are kept in **two tables** and joined on

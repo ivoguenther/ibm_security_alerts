@@ -19,6 +19,8 @@ from .node_parser import (
     build_flat_join,
     collect_ptfs_for_entries,
     export_ptfs_to_sqlite,
+    extract_ptf_entries,
+    extract_versions,
     fetch_node_html,
     format_flat_csv,
     parse_remediation_ptfs,
@@ -42,5 +44,7 @@ __all__ = [
     "export_ptfs_to_sqlite",
     "build_flat_join",
     "format_flat_csv",
+    "extract_versions",
+    "extract_ptf_entries",
     "PTF_TABLE_COLUMNS",
 ]
