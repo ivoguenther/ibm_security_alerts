@@ -215,6 +215,7 @@ python3 main_fixes.py "IBM i" --remediation --format table --limit 40
 
 # Persist both tables to one DB and emit a fully-joined flat CSV
 python3 main_fixes.py "IBM i" --remediation -d ibm.db --flat-csv fixes.csv
+python3 main_fixes.py "IBM i" --remediation --summary -d ibm_i.db --flat-csv ibm_i_ptfs.csv >/dev/null
 
 # As JSON for downstream processing
 python3 main_fixes.py "IBM i" --remediation -f json --limit 50 -o ptfs.json
