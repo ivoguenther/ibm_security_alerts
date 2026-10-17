@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="Generator" content="Drupal 10 (https://www.drupal.org)" />
+<meta name="MobileOptimized" content="width" />
+<meta name="HandheldFriendly" content="true" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="dcterms.date" content="2019-12-19" />
+<meta name="dcterms.rights" content="© Copyright IBM Corp. 2026" />
+<meta name="description" content="HTTP Server is supported by IBM i.  IBM i has addressed the applicable CVEs." />
+<meta name="geo.country" content="US" />
+<meta name="keywords" content="" />
+<meta name="robots" content="index, follow" />
+<meta name="DC.Subject" scheme="IBM_SubjectTaxonomy" content="SWG60" />
+<meta name="DC.Type" scheme="IBM_ContentClassTaxonomy" content="CT792" />
+<meta name="Security" content="public" />
+<meta http-equiv="x-ua-compatible" content="ie=edge" />
+<link rel="icon" href="/support/pages/core/misc/favicon.ico" type="image/vnd.microsoft.icon" />
+<link rel="canonical" href="https://www.ibm.com/support/pages/security-bulletin-multiple-vulnerabilities-ibm-i-http-server-affect-ibm-i" />
+<link rel="shortlink" href="https://www.ibm.com/support/pages/node/1097703" />
+
+<title>Security Bulletin: Multiple vulnerabilities in the IBM i HTTP Server affect IBM i.</title>
+<link rel="stylesheet" media="all" href="/support/pages/core/assets/vendor/jquery.ui/themes/base/core.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/core/assets/vendor/jquery.ui/themes/base/controlgroup.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/core/assets/vendor/jquery.ui/themes/base/checkboxradio.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/core/assets/vendor/jquery.ui/themes/base/resizable.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/core/assets/vendor/jquery.ui/themes/base/button.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/core/assets/vendor/jquery.ui/themes/base/dialog.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/core/components/progress.module.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/core/components/ajax-progress.module.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/align.module.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/fieldgroup.module.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/container-inline.module.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/clearfix.module.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/details.module.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/hidden.module.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/item-list.module.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/js.module.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/nowrap.module.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/position-container.module.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/reset-appearance.module.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/resize.module.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/system-status-counter.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/system-status-report-counters.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/system-status-report-general-info.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/system/components/tablesort.module.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/core/modules/ckeditor5/css/ckeditor5.dialog.fix.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/modules/custom/select2boxes/css/select2boxes.theme.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/core/assets/vendor/jquery.ui/themes/base/theme.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/modules/contrib/ckeditor5_plugin_pack/modules/ckeditor5_plugin_pack_indent_block/css/indent-block.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/modules/custom/custom_ckeditor5/css/cke5-www.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/modules/custom/custom_ckeditor5/css/cke5-style.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/modules/custom/feedback/css/feedback.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/modules/custom/ibm_nps_feedback/css/ibm_nps_feedback.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/modules/custom/search_result/css/search.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/css/select2.min.css" />
+<link rel="stylesheet" media="all" href="/support/pages/modules/custom/support_search/css/support_search.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
+<link rel="stylesheet" media="all" href="/support/pages/modules/custom/votingapi_widgets/css/useful.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/core/assets/vendor/normalize-css/normalize.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/stable/css/core/normalize-fixes.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/base/elements.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/layout.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/action-links.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/breadcrumb.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/button.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/collapse-processed.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/container-inline.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/details.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/exposed-filters.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/field.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/form.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/icons.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/inline-form.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/item-list.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/link.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/links.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/menu.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/more-link.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/pager.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/tabledrag.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/tableselect.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/tablesort.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/tabs.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/textarea.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/ui-dialog.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/messages.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/node.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/progress.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/contrib/classy/css/components/dialog.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/block.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/book.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/breadcrumb.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/captions.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/comments.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/contextual.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/demo-block.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/dropbutton.component.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/featured-top.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/feed-icon.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/field.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/form.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/forum.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/header.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/help.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/highlighted.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/item-list.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/list-group.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/list.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/main-content.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/menu.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/messages.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/node.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/node-preview.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/page-title.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/pager.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/panel.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/primary-menu.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/search-form.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/search-results.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/secondary-menu.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/shortcut.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/skip-link.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/sidebar.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/site-branding.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/site-footer.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/tablesort-indicator.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/tabs.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/text-formatted.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/toolbar.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/featured-bottom.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/password-suggestions.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/ui.widget.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/vertical-tabs.component.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/views.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/buttons.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/image-button.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/components/ui-dialog.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/colors.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/carbon/carbon-components-library.min.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="https://1.www.s81c.com/common/carbon-for-ibm-dotcom/tag/v1/latest/plex.css" />
+<link rel="stylesheet" media="all" href="https://1.www.s81c.com/common/carbon-for-ibm-dotcom/tag/v1/latest/grid.css" />
+<link rel="stylesheet" media="all" href="https://1.www.s81c.com/common/carbon-for-ibm-dotcom/tag/v1/latest/themes.css" />
+<link rel="stylesheet" media="all" href="https://1.www.s81c.com/common/v18/css/www.css" />
+<link rel="stylesheet" media="all" href="https://1.www.s81c.com/common/v18/css/syntaxhighlighter.css" />
+<link rel="stylesheet" media="all" href="https://1.www.s81c.com/common/v18/css/forms.css" />
+<link rel="stylesheet" media="all" href="https://1.www.s81c.com/common/v18/css/textcolumns.css" />
+<link rel="stylesheet" media="all" href="https://1.www.s81c.com/common/v18/css/grid-fluid.css" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/northstar/northstar.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/northstar/omnibox.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/carbon/carbon.css?tmxf1h" />
+<link rel="stylesheet" media="all" href="/support/pages/themes/ibm_carbon/css/carbon/dataTables.css?tmxf1h" />
+<link rel="stylesheet" media="print" href="/support/pages/themes/ibm_carbon/css/print.css?tmxf1h" />
+
+<script>
+  digitalData = {
+    page: {
+      category: {
+        primaryCategory: 'ELSDBANON'
+      },
+      pageInfo: {
+        effectiveDate: '2019-12-19',
+        expiryDate: '2023-12-19',
+        language: 'en',
+        publishDate: '2019-12-19',
+        publisher: 'IBM Corporation',
+        version: 'v18',
+        hotjar: {
+          enabled: true
+        },
+        ibm: {
+          contentDelivery: 'IBM Corporation',
+          contentProducer: 'IBM Corporation',
+          country: 'US',
+          industry: 'ZZ',
+          owner: 'ibmsupt@us.ibm.com',
+          siteID: 'ESTDBL',
+          subject: 'SWG60',
+          type: 'CT792'
+        }
+      }
+    }
+  };
+</script>
+<script type="application/json" data-drupal-selector="drupal-settings-json">{"path":{"baseUrl":"\/support\/pages\/","pathPrefix":"","currentPath":"node\/1097703","currentPathIsAdmin":false,"isFront":false,"currentLanguage":"en"},"pluralDelimiter":"\u0003","suppressDeprecationErrors":true,"ajaxPageState":{"libraries":"eJxdUNFuAyEM-yFapEr7HgRcjrELhCVh2-3rF_V0Vbs3O7YTK3mDpSrxWxg4S-1hxLyF2hfoGhJS3vwzcRmjyO5TFDhxA5FYQE7eaTGNGCypwD3i9eNzAu_XlbgdSjcUsf6acYpSC_ns4R8onJKIswJVEdq9CNMG7NlsDFndCrAka-1P4GqyVORE3RekFPEiumPt5VkxeKd9SHis-D9wApHze2CQiepfmGlo92-JfkD8d10K2GyOQazhcPpX6mQXhXZ874vUGsVRwxEVPwXWiX_TFZ3K","theme":"ibm_carbon","theme_token":null},"ajaxTrustedUrl":{"form_action_p_pvdeGsVG5zNF_XLGPTvYSKCf43t8qZYSwcfZl2uzM":true,"\/support\/pages\/security-bulletin-multiple-vulnerabilities-ibm-i-http-server-affect-ibm-i?ajax_form=1":true},"nid":"1097703","is_rendering_server":true,"support_details":{"contact_information":"\u003Cp\u003EVisit the \u003Ca href=\u0022https:\/\/www.ibm.com\/planetwide\/\u0022 target=\u0022_blank\u0022\u003EIBM Directory of worldwide contacts\u003C\/a\u003E, click your country, and use the phone number listed in the Technical Support section on the page.\u003C\/p\u003E","hours_of_operation":"\u003Cp\u003EIBM Support business hours reflect normal country business hours in your time zone. For example, 8:00 AM to 5:00 PM in North America or 9:00 AM to 6:00 PM in some parts of Asia and Europe, Monday through Friday, excluding national or statutory holidays. Off shift hours (for eligible offerings with 24x7 response) are defined as all other hours outside of normal country business hours.\u003C\/p\u003E\r\n\r\n\u003Cp\u003EVisit the \u003Ca href=\u0022https:\/\/www.ibm.com\/support\/pages\/ibm-support-guide#open-case\u0022 target=\u0022_blank\u0022\u003EIBM Support Guide\u003C\/a\u003E for more details.\u003C\/p\u003E","severity_definitions":"\u003Cp\u003EIBM will use commercially reasonable efforts to respond to cases raised by your authorized contacts within the criteria specified for your offering. Our initial response may result in resolution of your request, or it will form the basis for determining what additional actions may be required to resolve your request. Be sure you and your support professional agree on what the next action is and when the next checkpoint will be. Cases opened outside Business Hours that do not qualify for 24x7 response will be responded to the next business day.\u003C\/p\u003E\r\n\r\n\u003Cp\u003EVisit the \u003Ca href=\u0022https:\/\/www.ibm.com\/support\/pages\/ibm-support-guide#response\u0022 target=\u0022_blank\u0022\u003EIBM Support Guide\u003C\/a\u003E to select a product area for the specific Response Goals for each offering.\u003C\/p\u003E","escalation_process":"\u003Cp\u003EIf at any point in our service process you feel we are not meeting your needs, you may call our attention to your case.\u003C\/p\u003E\r\n\r\n\u003Cp\u003EVisit the \u003Ca href=\u0022https:\/\/www.ibm.com\/support\/pages\/ibm-support-guide#esc-case\u0022 target=\u0022_blank\u0022\u003EIBM Support Guide\u003C\/a\u003E for the escalation process related to your offering.\u003C\/p\u003E\r\n","enhancement_request_process":"\u003Cp\u003EVisit the \u003Ca href=\u0022https:\/\/www.ibm.com\/developerworks\/rfe\/\u0022 target=\u0022_blank\u0022\u003EIBM RFE Community\u003C\/a\u003E to collaborate with development teams and other product users through your ability to search, view, comment on, submit, and track product requests.\u003C\/p\u003E"},"isChatAllowedProduct":false,"isChatAllowedContentType":false,"custom_content_type_form":{"isECM":false,"isAuthor":false,"isAdministrator":false,"isSystemTipPublisher":false,"isNotificationPublisher":false,"isPublisher":false,"nid":null,"isEnabledAcrolinxWithPublishCheck":false,"nodesAllowedAcrolinxWithoutPublishCheck":false,"allowedAcrolinxWithoutPublishCheck":false},"ajax":{"edit-submit--2":{"callback":[{},"ajaxSubmit"],"event":"click","wrapper":"vote-form","progress":{"type":null},"url":"\/support\/pages\/security-bulletin-multiple-vulnerabilities-ibm-i-http-server-affect-ibm-i?ajax_form=1","httpMethod":"POST","dialogType":"ajax","submit":{"_triggering_element_name":"op","_triggering_element_value":"Save"}}},"user":{"uid":0,"permissionsHash":"5d9f1197356b6829e3646aacb485f8444dfbd1249220679855baa027a0f456cd"}}</script>
+<script src="/support/pages/core/assets/vendor/jquery/jquery.min.js?v=3.7.1"></script>
+<script src="/support/pages/core/misc/drupalSettingsLoader.js?v=10.6.14"></script>
+<script src="/support/pages/core/misc/drupal.js?v=10.6.14"></script>
+<script src="/support/pages/core/misc/drupal.init.js?v=10.6.14"></script>
+<script src="/support/pages/modules/custom/custom_content_type_form/js/utility.js?tmxf1h"></script>
+<script src="https://1.www.s81c.com/common/carbon-for-ibm-dotcom/tag/v1/latest/masthead.min.js" type="module"></script>
+<script src="https://1.www.s81c.com/common/carbon-for-ibm-dotcom/tag/v1/latest/leadspace-block.min.js" type="module"></script>
+<script src="https://1.www.s81c.com/common/carbon-for-ibm-dotcom/tag/v1/latest/leadspace.min.js" type="module"></script>
+<script src="https://1.www.s81c.com/common/carbon-for-ibm-dotcom/tag/v1/latest/footer.min.js" type="module"></script>
+<script src="https://1.www.s81c.com/common/carbon-for-ibm-dotcom/tag/v1/latest/table-of-contents.min.js" type="module"></script>
+<script src="https://1.www.s81c.com/common/carbon-for-ibm-dotcom/tag/v1/latest/back-to-top.min.js" type="module"></script>
+<script src="https://1.www.s81c.com/common/carbon-for-ibm-dotcom/tag/v1/latest/content-block-cards.min.js" type="module"></script>
+<script src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/breadcrumb.min.js" type="module"></script>
+<script src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/accordion.min.js" type="module"></script>
+<script src="https://1.www.s81c.com/common/carbon/web-components/tag/v2/latest/multi-select.min.js" type="module"></script>
+<script src="https://unpkg.com/carbon-components/scripts/carbon-components.min.js" type="module"></script>
+<script src="https://1.www.s81c.com/common/stats/ida_stats.js"></script>
+<script src="https://1.www.s81c.com/common/v18/js/www.js"></script>
+<script src="https://1.www.s81c.com/common/v18/js/dyntabs.js"></script>
+<script src="https://1.www.s81c.com/common/v18/js/forms.js"></script>
+<script src="https://1.www.s81c.com/common/v18/js/mustache.js"></script>
+<script src="https://1.www.s81c.com/common/v18/js/masonry.js"></script>
+<script src="https://1.www.s81c.com/common/v18/js/greensock/TweenMax.min.js"></script>
+<script src="https://www.ibm.com/marketplace/static/components/search/insights/r7insight.min.js"></script>
+<script src="https://www.ibm.com/marketplace/static/components/search/insights/ibm-search-insights.js"></script>
+<script src="/support/pages/themes/ibm_carbon/js/northstar.js?tmxf1h"></script>
+<script src="/support/pages/themes/ibm_carbon/js/omnibox.jquery.js?tmxf1h"></script>
+<script src="/support/pages/themes/ibm_carbon/js/carbon.js?tmxf1h"></script>
+<script src="/support/pages/themes/ibm_carbon/js/dataTables.min.js?tmxf1h"></script>
+<script src="/support/pages/modules/custom/search_result/js/searchPars.js?tmxf1h"></script>
+<script src="/support/pages/modules/custom/search_result/js/angular.min.js?tmxf1h"></script>
+<script src="/support/pages/modules/custom/search_result/js/angular-route.js?tmxf1h"></script>
+<script src="/support/pages/modules/custom/search_result/js/angular-sanitize.js?tmxf1h"></script>
+<script src="/support/pages/modules/custom/search_result/js/app.js?tmxf1h"></script>
+<script src="/support/pages/modules/custom/search_result/js/controllers.js?tmxf1h"></script>
+<script src="/support/pages/modules/custom/search_result/js/dBlueSearchUtil.js?tmxf1h"></script>
+
+<script>
+  IBMCore.common.util.config.set({
+    contactModuleWidget: {
+      color: "blue-50"
+    },
+    masthead: {
+      greeting: {
+        enabled: false
+      },
+      type: "alternate"
+    },
+    footer: {
+      type: "alternate"
+    },
+    feedbacklink: {
+      enabled: false
+    }
+  });
+
+
+  IBMSearchInsightsData.setAdopter(IBMSearchInsightsData.ADOPTERS.SUPPORT_DRUPAL);
+  </script>
+</head>
+<body id="ibm-com" class="layout-no-sidebars path-node page-node-type-security-bulletin ibm-type dblue">
+  <div id="ibm-top" class="ibm-landing-page">
+      
+    <div class="dialog-off-canvas-main-canvas" data-off-canvas-main-canvas>
+      <dds-masthead-container id="masthead-container"></dds-masthead-container>
+<div class="ibm-masthead-rightside">
+  <div class="region region-newheader">
+    <div class="openid-connect-login-form bx--row block block-openid-connect block-openid-connect-login" data-drupal-selector="openid-connect-login-form" id="block-ibm-carbon-openidconnectlogin">
+  
+    
+            <div class="content bx--offset-lg-2 bx--col-lg-14">
+          <form action="/support/pages/node/1097703" method="post" id="openid-connect-login-form" accept-charset="UTF-8">
+  <div><input data-drupal-selector="edit-openid-connect-client-generic-login" type="submit" id="edit-openid-connect-client-generic-login" name="generic" value="Log in with Generic" class="button js-form-submit form-submit" />
+</div><input autocomplete="off" data-drupal-selector="form-agx8l0o5f4-nom-jaykx6u96bz2e8ombw8sewi6h6yg" type="hidden" name="form_build_id" value="form-AgX8l0O5f4_Nom-JAYkX6U96BZ2E8Ombw8SEWI6H6yg" />
+<input data-drupal-selector="edit-openid-connect-login-form" type="hidden" name="form_id" value="openid_connect_login_form" />
+
+</form>
+
+    </div>
+  </div>
+  </div>
+
+</div>
+<div id="ibm-content-wrapper">
+
+<header role="banner" aria-labelledby="ibm-pagetitle-h1">
+</header>
+
+<main role="main" aria-labelledby="ibm-pagetitle-h1">
+  <div id="ibm-pcon">
+    <div id="ibm-content">
+      <div id="ibm-content-body">
+        <div id="ibm-content-main">
+
+                                <div class="bx--grid--full-width" id="ibm-drupal-leadspace">
+	<div class="bx--row">
+    	<div class="bx--offset-lg-2 bx--col-lg-14">
+			<dds-leadspace-block id="leadspace-block" >
+				<dds-leadspace-block-heading><a href="https://www.ibm.com/mysupport/" target="_blank">IBM Support</a></dds-leadspace-block-heading>
+				<dds-leadspace-block-content>
+					<div id="search-header-wrapper" style="display: block;">
+						<div id="search-header-small">
+							<div class="bx--form-item">
+								<div data-search="" role="search" class="bx--search bx--search--sm">
+									<div id="spng-omnibox">
+										<form class="ibm-row-form ibm-home-search ibm" enctype="multipart/form-data" id="spng-search" ng-submit="omniType()">
+											<input id="spng-search-query" class="bx--search-input" name="text" size="40" type="search" autocomplete="off" placeholder="Search support or find a product">
+											<a title="Search" aria-label="Search" href="#" tabindex="-1" id="spng-search-button" ng-click="omniButton()" class="ibm-search-link common-search-link"></a>
+											<div id="spng-search-typeahead-wrapper" style="display:none" class="search-results-wrapper">
+												<div id="spng-search-typeahead" class="common-search-results">
+													<div id="spng-spinner" style="display:none">
+														<h2 class="ibm-h2"><span class="ibm-spinner">&nbsp;</span></h2>
+													</div>
+													<div id="sp-no-results" style="display:none">
+														<div class="results">
+															<p>No results were found for your search query.</p>
+															<div class="ibm-rule"><hr></div>
+															<h5 class="ibm-h5"><strong>Tips</strong></h5>
+															<p>To return expected results, you can:</p>
+															<ul>
+																<li><strong>Reduce the number of search terms.</strong> Each term you use focuses the search further.</li>
+																<li><strong>Check your spelling.</strong> A single misspelled or incorrectly typed term can change your result.</li>
+																<li><strong>Try substituting synonyms for your original terms.</strong> For example, instead of searching for "java classes", try "java training"</li>
+																<li><strong>Did you search for an IBM acquired or sold product ?</strong> If so, follow the appropriate link below to find the content you need.</li>
+															</ul>
+														</div>
+													</div>
+													<div id="sp-doc-failure" style="display:none">
+														<div class="category">Our apologies</div>
+														<div class="results">
+															<p>Search results are not available at this time. Please try again later or use one of the other support options on this page.</p>
+														</div>
+													</div>
+													<div id="sp-prev-products" class="result_section"></div>
+													<div id="sp-wd-results" class="result_section"></div>
+													<div id="sp-prod-results" class="result_section"></div>
+													<div id="sp-doc-results" class="result_section"></div>
+												</div>
+											</div>
+										</form>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</dds-leadspace-block-content>
+			</dds-leadspace-block>
+		</div>
+	</div>
+</div>          
+                                      <div id='ibm-drupal-page-content' class='bx--grid--full-width'>
+                    <div class="region region-content">
+    <div data-drupal-messages-fallback class="hidden"></div><div id="block-ibm-carbon-page-title" class="bx--row block block-core block-page-title-block">
+  
+    
+            <div class="content bx--offset-lg-2 bx--col-md-6 bx--col-lg-10">
+          
+  <h1 class="ibm-h3 ibm-padding-bottom-1 ibm-northstart-content-page-title ibm-textcolor-gray-80 page-title"><span class="field field--name-title field--type-string field--label-hidden">Security Bulletin: Multiple vulnerabilities in the IBM i HTTP Server affect IBM i.</span>
+</h1>
+
+
+    </div>
+  </div><div id="block-ibm-carbon-content" class="bx--row block block-system block-system-main-block">
+  
+    
+            <div class="content bx--offset-lg-2 bx--col-lg-14">
+          
+<article data-history-node-id="1097703" class="node node--type-security-bulletin node--view-mode-full clearfix">
+  <header>
+                  <div class="node__meta">
+          <span>
+            Created by <span class="field field--name-uid field--type-entity-reference field--label-hidden"><span>Tim Mullenbach</span></span>
+ on <span class="field field--name-created field--type-created field--label-hidden"><time datetime="2019-10-23T17:01:56-04:00" title="Wednesday, October 23, 2019 - 17:01" class="datetime">Wed, 10/23/2019 - 17:01</time>
+</span>
+          </span>
+          
+        </div>
+                  <div class="ibm-published-url-description node__meta">
+            <span>Published URL:</span>
+          </div>
+          <div class="ibm-published-url">
+            <div class="ibm-published-url-by-title node__meta">
+              https://www.ibm.com/support/pages/node/1097703
+            </div>
+            <div class="ibm-published-url-by-id node__meta">
+              1097703
+            </div>
+          </div>
+                <div class="northstar ibm-rule"><hr></div>
+            </header>
+  <div class="node__content clearfix">
+    <div class="bx--grid--full-width bx--no-gutter">
+      <div class="bx--row">
+      <div class="bx--col-md-6 bx--col-lg-12">
+        <div id="com.dblue.docview.body.content" class="">
+        <div class="ibm-card__content">
+        <div class="ibm-container ibm-alternate">
+                  <h3 class="ibm-h4 ibm-bold ibm-northstart-product-documentation-title">Security Bulletin</h3>
+                  <div class="ibm-container-body">
+          <br>
+          
+          
+          
+          
+          
+  <div class="field field--name-field-summary field--type-string-long field--label-above">
+        <h2 class="ibm-h4 ibm-bold ibm-northstart-documentation-information-label">Summary</h2>
+                    <p class="ibm-northstart-documentation-information-data">HTTP Server is supported by IBM i.  IBM i has addressed the applicable CVEs.</p>
+          </div>
+
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+  <div class="clearfix text-formatted field field--name-field-vulnerability-details field--type-text-long field--label-above">
+        <h2 class="ibm-h4 ibm-bold ibm-northstart-documentation-information-label">Vulnerability Details</h2>
+                    <p class="ibm-northstart-documentation-information-data"><div>
+<p><b>CVEID:</b> <a href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-9517" target="_blank">CVE-2019-9517</a><br />
+<b>DESCRIPTION:</b> Multiple vendors are vulnerable to a denial of service, caused by an Internal Data Buffering attack. By opening the HTTP/2 window so the peer can send without constraint and sending a stream of requests for a large response object, a remote attacker could consume excessive CPU resources.<br />
+CVSS Base Score: 7.5<br />
+CVSS Temporal Score: See <a href="https://exchange.xforce.ibmcloud.com/vulnerabilities/165183" target="_blank">https://exchange.xforce.ibmcloud.com/vulnerabilities/165183</a> for the current score<br />
+CVSS Environmental Score*: Undefined<br />
+CVSS Vector: (CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H)</p>
+
+<p><b>CVEID:</b> <a href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-10081" target="_blank">CVE-2019-10081</a><br />
+<b>DESCRIPTION:</b> Apache HTTP Server is vulnerable to a denial of service, caused by a memory corruption on early pushes in the mod_http2 module. By sending a specially crafted request, a remote attacker could exploit this vulnerability to cause a crash.<br />
+CVSS Base Score: 5.3<br />
+CVSS Temporal Score: See <a href="https://exchange.xforce.ibmcloud.com/vulnerabilities/165369" target="_blank">https://exchange.xforce.ibmcloud.com/vulnerabilities/165369</a> for the current score<br />
+CVSS Environmental Score*: Undefined<br />
+CVSS Vector: (CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:L)</p>
+
+<p><b>CVEID:</b> <a href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-10082" target="_blank">CVE-2019-10082</a><br />
+<b>DESCRIPTION:</b> Apache HTTP Server could allow a remote attacker to obtain sensitive information, caused by a read-after-free in the mod_http2 module during connection shutdown. By sending specially crafted input, a remote attacker could exploit this vulnerability to obtain sensitive information.<br />
+CVSS Base Score: 5.3<br />
+CVSS Temporal Score: See <a href="https://exchange.xforce.ibmcloud.com/vulnerabilities/165368" target="_blank">https://exchange.xforce.ibmcloud.com/vulnerabilities/165368</a> for the current score<br />
+CVSS Environmental Score*: Undefined<br />
+CVSS Vector: (CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N)</p>
+
+<p><b>CVEID:</b> <a href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-10092" target="_blank">CVE-2019-10092</a><br />
+<b>DESCRIPTION:</b> Apache HTTP Server is vulnerable to cross-site scripting, caused by improper validation of user-supplied input by the mod_proxy error page. A remote attacker could cause the link on the error page to be malfomed and instead point to a page of their choice. An attacker could use this vulnerability to steal the victim''s cookie-based authentication credentials.<br />
+CVSS Base Score: 4.7<br />
+CVSS Temporal Score: See <a href="https://exchange.xforce.ibmcloud.com/vulnerabilities/165367" target="_blank">https://exchange.xforce.ibmcloud.com/vulnerabilities/165367</a> for the current score<br />
+CVSS Environmental Score*: Undefined<br />
+CVSS Vector: (CVSS:3.0/AV:N/AC:H/PR:N/UI:R/S:C/C:L/I:L/A:N)</p>
+
+<p><b>CVEID:</b> <a href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-10097" target="_blank">CVE-2019-10097</a><br />
+<b>DESCRIPTION:</b> Apache HTTP Server is vulnerable to a denial of service, caused by a stack-based buffer overflow and a NULL pointer dereference in the mod_remoteip module. By sending a specially crafted PROXY header, a remote attacker could exploit this vulnerability to overflow a buffer and cause a denial of service.<br />
+CVSS Base Score: 5.6<br />
+CVSS Temporal Score: See <a href="https://exchange.xforce.ibmcloud.com/vulnerabilities/165365" target="_blank">https://exchange.xforce.ibmcloud.com/vulnerabilities/165365</a> for the current score<br />
+CVSS Environmental Score*: Undefined<br />
+CVSS Vector: (CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:L/A:L)</p>
+
+<p><b>CVEID:</b> <a href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-10098" target="_blank">CVE-2019-10098</a><br />
+<b>DESCRIPTION:</b> Apache HTTP Server could allow a remote attacker to conduct phishing attacks, caused by an open redirect vulnerability in the mod_rewrite module. An attacker could exploit this vulnerability using a specially-crafted URL to redirect a victim to arbitrary Web sites.<br />
+CVSS Base Score: 3.7<br />
+CVSS Temporal Score: See <a href="https://exchange.xforce.ibmcloud.com/vulnerabilities/165366" target="_blank">https://exchange.xforce.ibmcloud.com/vulnerabilities/165366</a> for the current score<br />
+CVSS Environmental Score*: Undefined<br />
+CVSS Vector: (CVSS:3.0/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:L/A:N)</p>
+</div>
+</p>
+          </div>
+
+          
+  <div class="clearfix text-formatted field field--name-field-affected-products field--type-text-long field--label-above">
+        <h2 class="ibm-h4 ibm-bold ibm-northstart-documentation-information-label">Affected Products and Versions</h2>
+                    <p class="ibm-northstart-documentation-information-data"><div>Releases 7.4, 7.3, and 7.2 of IBM i are affected.</div>
+</p>
+          </div>
+
+          
+  <div class="clearfix text-formatted field field--name-field-remediation-fixes field--type-text-long field--label-above">
+        <h2 class="ibm-h4 ibm-bold ibm-northstart-documentation-information-label">Remediation/Fixes</h2>
+                    <p class="ibm-northstart-documentation-information-data"><div>The issue can be fixed by applying a PTF to IBM i.
+<p>Releases 7.4, 7.3 and 7.2 of IBM i are supported and will be fixed.</p>
+
+<p>The IBM i PTF numbers are:</p>
+
+<table class="bx--data-table">
+	<thead>
+		<tr>
+			<th scope="row"></th>
+			<th scope="col"><strong>IBM i 7.4</strong></th>
+			<th scope="col"><strong>IBM i 7.3</strong></th>
+			<th scope="col"><strong>IBM i 7.2</strong></th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<th scope="row"><strong>CVE-2019-9517</strong></th>
+			<td><strong>SI70961</strong></td>
+			<td><strong>SI70970</strong></td>
+			<td><strong>Not affected</strong></td>
+		</tr>
+		<tr>
+			<th scope="row"><strong>CVE-2019-10081</strong></th>
+			<td><strong>SI70961</strong></td>
+			<td><strong>SI70970</strong></td>
+			<td><strong>Not affected</strong></td>
+		</tr>
+		<tr>
+			<th scope="row"><strong>CVE-2019-10082</strong></th>
+			<td><strong>SI70961</strong></td>
+			<td><strong>SI70970</strong></td>
+			<td><strong>Not affected</strong></td>
+		</tr>
+		<tr>
+			<th scope="row"><strong>CVE-2019-10098</strong></th>
+			<td><strong>SI71097</strong></td>
+			<td><strong>SI71052</strong></td>
+			<td><strong>SI71028</strong></td>
+		</tr>
+		<tr>
+			<th scope="row"><strong>CVE-2019-10092</strong></th>
+			<td><strong>SI71097</strong></td>
+			<td><strong>SI71052</strong></td>
+			<td><strong>SI71028</strong></td>
+		</tr>
+		<tr>
+			<th scope="row"><strong>CVE-2019-10097</strong></th>
+			<td><strong>SI71097</strong></td>
+			<td><strong>Not affected</strong></td>
+			<td><strong>Not affected</strong></td>
+		</tr>
+	</tbody>
+</table>
+
+<p><a href="https://www-945.ibm.com/support/fixcentral/" style="color:blue; text-decoration:underline">https://www-945.ibm.com/support/fixcentral/</a></p>
+
+<p><i><b>Important note:</b> IBM recommends that all users running unsupported versions of affected products upgrade to supported and fixed version of affected products.</i></p>
+</div>
+</p>
+          </div>
+
+          
+  <div class="clearfix text-formatted field field--name-field-workarounds-and-mitigation field--type-text-long field--label-above">
+        <h2 class="ibm-h4 ibm-bold ibm-northstart-documentation-information-label">Workarounds and Mitigations</h2>
+                    <p class="ibm-northstart-documentation-information-data"><div>None</div>
+</p>
+          </div>
+
+                      
+  <div class="clearfix text-formatted field field--name-field-bluemix-false-extra field--type-text-long field--label-above">
+        <h2 class="ibm-h4 ibm-bold ibm-northstart-documentation-information-label">Get Notified about Future Security Bulletins</h2>
+                    <p class="ibm-northstart-documentation-information-data"><p class="ibm-information-link ibm-icon-nolink ibm-inlinelink">Subscribe to <a href="https://www.ibm.com/support/pages/node/718119">My Notifications</a> to be notified of important product support alerts like this.</p>
+</p>
+          </div>
+
+                                          <div class="ibm-references-title">
+                <h3 class="ibm-h4 ibm-bold ibm-northstart-product-documentation-title">References</h2>
+            </div>
+                                <div class="ibm-references-content">
+            <p><a class="ibm-external-link ibm-inlinelink ibm-icon-after" href="http://www.first.org/cvss/user-guide" title="Link resides outside of ibm.com">Complete CVSS v3 Guide</a><br />
+<a class="ibm-external-link ibm-inlinelink ibm-icon-after" href="http://www.first.org/cvss/calculator/3.0" title="Link resides outside of ibm.com">On-line Calculator v3</a></p>
+
+            </div>
+                                <div id="ibm-special-format">
+            Off
+            </div>
+                    
+          
+  <div class="clearfix text-formatted field field--name-field-related-information-extra field--type-text-long field--label-above">
+        <h2 class="ibm-h4 ibm-bold ibm-northstart-documentation-information-label">Related Information</h2>
+                    <p class="ibm-northstart-documentation-information-data"><p><a href="http://www.ibm.com/security/secure-engineering/bulletins.html">IBM Secure Engineering Web Portal</a><br />
+<a href="http://www.ibm.com/blogs/psirt">IBM Product Security Incident Response Blog</a></p>
+</p>
+          </div>
+
+          
+          
+          
+          
+          
+          
+          
+          
+                    
+                              <div id="field-download-package-title"></div>
+                    
+          
+          
+          
+  <div class="field field--name-field-change-history field--type-string-long field--label-above">
+        <h2 class="ibm-h4 ibm-bold ibm-northstart-documentation-information-label">Change History</h2>
+                    <p class="ibm-northstart-documentation-information-data">23 October 2019: Original Version Published</p>
+          </div>
+
+          
+                    
+          
+                    <div class="field_cvss_score">
+          <p>*The CVSS Environment Score is customer environment specific and will ultimately impact the Overall CVSS Score. Customers can evaluate the impact of this vulnerability in their environments by accessing the links in the Reference section of this Security Bulletin.</p>
+
+          </div>
+                    
+  <div class="clearfix text-formatted field field--name-field-disclaimer field--type-text-long field--label-above">
+        <h2 class="ibm-h4 ibm-bold ibm-northstart-documentation-information-label">Disclaimer</h2>
+                    <p class="ibm-northstart-documentation-information-data"><p>Review the <a href="https://www.ibm.com/support/pages/node/6610583#disclaimer" target="_blank">IBM security bulletin disclaimer and definitions</a> regarding your responsibilities for assessing potential impact of security vulnerabilities to your environment.</p></p>
+          </div>
+
+          
+          
+          
+          
+          
+          
+          
+          
+  <div class="field field--name-field-document-location field--type-list-string field--label-above">
+        <h2 class="ibm-h4 ibm-bold ibm-northstart-documentation-information-label">Document Location</h2>
+          <div class="field__items">
+                    <p class="ibm-northstart-documentation-information-data">Worldwide</p>
+              </div>
+      </div>
+
+          
+                    <p></p>
+                              <div id="taxonomy-table-list"></div>
+          <div class="field--taxonomy" id="taxonomy-source">
+          [{&quot;Type&quot;:&quot;MASTER&quot;,&quot;Line of Business&quot;:{&quot;code&quot;:&quot;LOB57&quot;,&quot;label&quot;:&quot;Power&quot;},&quot;Business Unit&quot;:{&quot;code&quot;:&quot;BU058&quot;,&quot;label&quot;:&quot;IBM Infrastructure w\/TPS&quot;},&quot;Product&quot;:{&quot;code&quot;:&quot;SWG60&quot;,&quot;label&quot;:&quot;IBM i&quot;},&quot;Platform&quot;:[{&quot;code&quot;:&quot;PF012&quot;,&quot;label&quot;:&quot;IBM i&quot;}],&quot;Version&quot;:&quot;7.1.0&quot;}]
+          </div>
+                    
+          
+          
+          
+          
+          
+
+        </div>
+        </div>
+        </div>
+      </div>
+     </div>
+      <div class="bx--col-md-2 bx--col-lg-4">
+
+        <div id="ibm-document-information" class="ibm-card">
+            <div class="ibm-card__content">
+              <div class="like_dislike">
+                
+  <div class="field field--name-field-was-this-topic-helpful field--type-voting-api-field field--label-above">
+        <h2 class="ibm-h4 ibm-bold ibm-northstart-documentation-information-label">Was this topic helpful?</h2>
+                    <p class="ibm-northstart-documentation-information-data"><div class="votingapi-widgets useful"><form class="node-security-bulletin-1097703-vote-field-was-this-topic-helpful__vote-vote-votingapi-useful-form vote-form" id="vote-form" data-drupal-selector="node-security-bulletin-1097703-vote-field-was-this-topic-helpful-vote-vote-votingapi-useful-form" action="/support/pages/node/1097703" method="post" accept-charset="UTF-8">
+  <div class="js-form-item form-item js-form-type-select form-type-select js-form-item-value form-item-value form-no-label">
+        <select autocomplete="off" data-result-value="-1" data-vote-value="-1" data-style="default" data-show-own-vote="false" data-drupal-selector="edit-value" id="edit-value" name="value" class="form-select select2-widget" data-jquery-once-autocomplete="true" data-select2-autocomplete-list-widget="true" search-pagesize="10"><option value="-1">Not useful</option><option value="1">Useful</option></select>
+
+        </div>
+<input autocomplete="off" data-drupal-selector="form-2es9loxe-samlhs8s-5jfw9mjr0mb2fmoor5-ge-x-e" type="hidden" name="form_build_id" value="form-2Es9loxe_SAmLhs8S-5jFW9mjr0mB2fmooR5_Ge_X_E" />
+<input data-drupal-selector="edit-node-security-bulletin-1097703-vote-field-was-this-topic-helpful-vote-vote-votingapi-useful-form" type="hidden" name="form_id" value="node_security_bulletin_1097703_vote_field_was_this_topic_helpful__vote_vote_votingapi_useful_form" />
+<input data-drupal-selector="edit-submit" type="submit" id="edit-submit--2" name="op" value="Save" class="button button--primary js-form-submit form-submit" />
+
+</form>
+</div>
+</p>
+          </div>
+
+              </div>
+            <h3 class="ibm-h4 ibm-northstart-documentation-information-title">Document Information</h3>
+
+                                                
+            <div id="taxonomy-items">
+            </div>
+
+                        <p>
+            <strong>Modified date:</strong>
+            <br>
+            18 December 2019
+            </p>
+            
+                                    
+                        <div class='content-field_uid'>
+  <div class="field field--name-field-uid field--type-string field--label-above">
+        <h2 class="ibm-h4 ibm-bold ibm-northstart-documentation-information-label">UID</h2>
+                    <p class="ibm-northstart-documentation-information-data">ibm11097703</p>
+          </div>
+</div>
+            
+          </div>
+        </div>
+      </div>
+
+    </div>
+   </div>
+  </div>
+</article>
+
+    </div>
+  </div><div id="block-pagefeedbackmodal" class="bx--row block block-feedback block-page-feedback-modal">
+  
+    
+            <div class="content bx--offset-lg-2 bx--col-lg-14">
+          <p><a id="ibm-drupal-feedback" class="button button-action button--primary button--small use-ajax" data-dialog-options="{&quot;width&quot;:670,&quot;dialogClass&quot;: &quot;modal-container&quot;}" data-dialog-type="modal" href="javascript:void(0);">Page Feedback</a></p>
+    </div>
+  </div>
+  </div>
+
+                </div>
+                              </div>
+      </div>
+    </div>
+  </div>
+</main>
+  <div id="ibm-contact-module" class="drupal-feedback">
+	<h2 class="ibm-bold">Share your feedback</h2>
+	<h3 class="ibm-bold">Need support?</h3>
+	<ul class="ibm-live-assistance-list">
+		<li><a class="ibm-requestquote-link" href="javascript:void(0)">Submit feedback to IBM Support</a></li>
+		<li><p class="ibm-icon-nolink ibm-phone-link">1-800-IBM-7378 (<strong>USA</strong>)</p></li>
+		<li><a class="ibm-arrow-forward-link" href="//www.ibm.com/planetwide/index.html#region">Directory of worldwide contacts</a></li>
+	</ul>
+</div>
+
+  <dds-footer-container size="micro"></dds-footer-container>
+</div>
+
+  </div>
+
+  
+  </div>
+<script src="/support/pages/core/assets/vendor/once/once.min.js?v=1.0.1"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/version-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/data-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/disable-selection-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/jquery-patch-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/scroll-parent-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/unique-id-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/focusable-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/keycode-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/plugin-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/widget-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/labels-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/widgets/controlgroup-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/form-reset-mixin-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/widgets/mouse-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/widgets/checkboxradio-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/widgets/draggable-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/widgets/resizable-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/widgets/button-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/jquery.ui/ui/widgets/dialog-min.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/tabbable/index.umd.min.js?v=6.3.0"></script>
+<script src="/support/pages/core/assets/vendor/tua-body-scroll-lock/tua-bsl.umd.min.js?v=10.6.14"></script>
+<script src="/support/pages/core/misc/jquery.form.js?v=4.3.0"></script>
+<script src="/support/pages/modules/custom/entitlement_broker/js/entitlement_broker.js?v=1.x"></script>
+<script src="/support/pages/core/misc/progress.js?v=10.6.14"></script>
+<script src="/support/pages/core/assets/vendor/loadjs/loadjs.min.js?v=4.3.0"></script>
+<script src="/support/pages/core/misc/debounce.js?v=10.6.14"></script>
+<script src="/support/pages/core/misc/announce.js?v=10.6.14"></script>
+<script src="/support/pages/core/misc/message.js?v=10.6.14"></script>
+<script src="/support/pages/core/misc/ajax.js?v=10.6.14"></script>
+<script src="/support/pages/themes/contrib/stable/js/ajax.js?v=10.6.14"></script>
+<script src="/support/pages/core/misc/displace.js?v=10.6.14"></script>
+<script src="/support/pages/core/misc/jquery.tabbable.shim.js?v=10.6.14"></script>
+<script src="/support/pages/core/misc/position.js?v=10.6.14"></script>
+<script src="/support/pages/core/misc/dialog/dialog-deprecation.js?v=10.6.14"></script>
+<script src="/support/pages/core/misc/dialog/dialog.js?v=10.6.14"></script>
+<script src="/support/pages/core/misc/dialog/dialog.position.js?v=10.6.14"></script>
+<script src="/support/pages/core/misc/dialog/dialog.jquery-ui.js?v=10.6.14"></script>
+<script src="/support/pages/core/modules/ckeditor5/js/ckeditor5.dialog.fix.js?v=10.6.14"></script>
+<script src="/support/pages/core/misc/dialog/dialog.ajax.js?v=10.6.14"></script>
+<script src="/support/pages/modules/custom/feedback/js/feedback.js?v=10.6.14"></script>
+<script src="/support/pages/modules/custom/ibm_nps_feedback/js/ibm_nps_feedback.js?v=10.6.14"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/js/select2.full.min.js"></script>
+<script src="/support/pages/modules/custom/select2boxes/js/select2boxes.js?v=4.0.5"></script>
+<script src="/support/pages/modules/custom/support_search/js/support_search.js?v=10.6.14"></script>
+<script src="/support/pages/modules/custom/votingapi_widgets/js/useful.js?v=1.2"></script>
+
+<link rel="stylesheet" type="text/css"  href="/KMiY6gu6fE/kWU-/6xRUVw/mLXu/Wh9aIw/Xld9cA/hRTi5Y"><script  src="/KMiY6gu6fE/kWU-/6xRUVw/mLXu/Wh9aIw/UU4saX/55K1so" async defer></script><div id="sec-overlay" style="display:none;"><div id="sec-container"></div></div></body>
+</html>

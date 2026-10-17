@@ -424,6 +424,99 @@ def _extract_product(header_texts: Optional[List[str]], release_col: int) -> str
     return h
 
 
+# A CVE id like CVE-2019-9517, used as the row label in a transposed "matrix"
+# fix table where the releases live in the column headers.
+_CVE_TOKEN = re.compile(r"CVE-\d{4}-\d+", re.IGNORECASE)
+# The IBM X-Force vulnerability id, e.g. .../vulnerabilities/220414. A node page
+# that lists no CVE id of its own still links to its X-Force record; we fill the
+# CVE-id slot with this when the page has no CVE.
+_XFORCE_TOKEN = re.compile(r"xforce\.ibmcloud\.com/vulnerabilities/(\d+)", re.IGNORECASE)
+# Number of version-bearing *columns* that must be present to treat a fix table
+# as transposed (releases in the headers instead of the data rows).
+_MATRIX_MIN_VERSION_COLS = 2
+
+
+def extract_cve(text: str) -> str:
+    """Return the first CVE id in a cell label (e.g. 'CVE-2019-9517'), else ''."""
+    m = _CVE_TOKEN.search(text or "")
+    return m.group(0).upper() if m else ""
+
+
+def extract_xforce_id(html: str) -> str:
+    """Return the IBM X-Force vulnerability id embedded in a node page.
+
+    A node page that names no CVE still links to an X-Force record such as
+    ``https://exchange.xforce.ibmcloud.com/vulnerabilities/220414``; this returns
+    the bare id (``'220414'``), or ``''`` when none is present.
+    """
+    m = _XFORCE_TOKEN.search(html or "")
+    return m.group(1) if m else ""
+
+
+def xforce_url_for(xforce_id: str) -> str:
+    """Build the canonical X-Force record URL for an id, or ''."""
+    return f"https://exchange.xforce.ibmcloud.com/vulnerabilities/{xforce_id}" if xforce_id else ""
+
+
+def _has_version(text: str) -> bool:
+    return bool(_VERSION.search(text or ""))
+
+
+def _find_matrix_header(
+    rows: List[List[Dict[str, Any]]],
+) -> Tuple[Optional[int], Optional[List[Dict[str, Any]]]]:
+    """Detect a *transposed* Remediation/Fixes table and return its header row.
+
+    Some node pages (e.g. 1097703) lay the fix table out as a matrix: the column
+    headers are IBM i releases (``IBM i 7.4 | IBM i 7.3 | IBM i 7.2``) and each
+    data row starts with a row label such as a CVE id, the remaining cells
+    holding the PTF (or ``Not affected``) for that release -- the opposite of the
+    usual orientation. The signal is a row whose non-label columns (col >= 1)
+    carry at least two version tokens, since the usual case keeps versions in the
+    data rows, not in the headers.
+
+    :return: ``[index, row]`` of the matrix header, or ``[None, None]``.
+    """
+    for i, r in enumerate(rows):
+        vcols = [j for j in range(1, len(r)) if _has_version(_cell_text(r[j]))]
+        if len(vcols) >= _MATRIX_MIN_VERSION_COLS and i < len(rows) - 1:
+            return i, r
+    return None, None
+
+
+def _strip_version_label(text: str) -> str:
+    """Turn a matrix header such as 'IBM i 7.4' into a product label 'IBM i'."""
+    h = re.sub(_VERSION, " ", text or "")
+    h = re.sub(r"\brelease\b|\bversion(?:s)?\b", " ", h, flags=re.IGNORECASE)
+    h = re.sub(r"[()]", " ", h)
+    h = re.sub(r"\s+", " ", h).strip()
+    return h
+
+
+def _matrix_release_columns(
+    header_row: List[Dict[str, Any]],
+) -> Tuple[Dict[int, str], str, str]:
+    """Map each version-bearing header column to its release, product and sw_lvl.
+
+    Returns ``[col_to_release, product, sw_lvl]`` where each key is a column
+    index (>=1) whose header names an IBM i release.
+    """
+    col_to_release: Dict[int, str] = {}
+    product = ""
+    sw_lvl = ""
+    for j in range(1, len(header_row)):
+        text = _cell_text(header_row[j])
+        rels = extract_versions(text)
+        if rels:
+            col_to_release[j] = rels[0]
+            sw = _extract_sw_lvl([text])
+            if sw and not sw_lvl:
+                sw_lvl = sw
+            if not product:
+                product = _strip_version_label(text)
+    return col_to_release, product, sw_lvl
+
+
 def _record(
     node: str,
     release: str,
@@ -431,8 +524,12 @@ def _record(
     product: str,
     ptf: str,
     link: str,
+    *,
+    field_cve_id: str = "",
+    field_x_force_id: str = "",
+    field_x_force_url: str = "",
 ) -> Dict[str, Any]:
-    return {
+    rec = {
         "node": node,
         "product": product,
         "ibm_i_release": release,
@@ -440,6 +537,15 @@ def _record(
         "ptf_number": ptf,
         "download_link": link,
     }
+    # Optional identifiers are only attached when actually learned, so the
+    # canonical 6-column PTF records stay unchanged for the common case.
+    if field_cve_id:
+        rec["field_cve_id"] = field_cve_id
+    if field_x_force_id:
+        rec["field_x_force_id"] = field_x_force_id
+    if field_x_force_url:
+        rec["field_x_force_url"] = field_x_force_url
+    return rec
 
 
 def parse_remediation_ptfs(
@@ -458,18 +564,31 @@ def parse_remediation_ptfs(
     :param synthesize_links: When a PTF has no explicit fix-information link,
         build ``.../fix-information?legacy=<PTF>`` from the PTF number.
 
-    Each affected OS release in a cell (e.g. '7.4 7.3 7.2') is expanded into a
+    each affected OS release in a cell (e.g. '7.4 7.3 7.2') is expanded into a
     dedicated record per version, and each record's ``ptf_number`` keeps any
     trailing PTF level (e.g. 'SF99952 - 01'). The result is one record per
     (node, version, PTF) pair, de-duplicated.
 
-    :return: De-duplicated list of PTF records with the canonical PTF columns
-        plus a detected ``product`` tag.
+    Two extra cases are also handled:
+
+    * **Transposed "matrix" tables** (e.g. node 1097703): the fix columns are the
+      IBM i releases in the *header* (``IBM i 7.4 | IBM i 7.3 | IBM i 7.2``) and
+      each data row begins with a row label such as a CVE id. Such a table is
+      auto-detected and each non-'Not affected' cell is expanded into a record
+      carrying its row's CVE id in ``field_cve_id``.
+    * **Pages that name no CVE** (e.g. 6591307, 6551988): the IBM X-Force
+      vulnerability id from the page is attached as ``field_x_force_id`` /
+      ``field_x_force_url`` so callers can fill an empty CVE-id slot.
     """
     node = str(node_id).strip()
     extractor = _RemediationExtractor()
     extractor.feed(html)
     extractor.close()
+
+    # A page that names no CVE still links to its X-Force record; we surface the
+    # id on every record it produces so callers can fill an empty CVE-id slot.
+    x_force_id = extract_xforce_id(html)
+    x_force_url = xforce_url_for(x_force_id)
 
     records: List[Dict[str, Any]] = []
     seen: set = set()
@@ -477,6 +596,41 @@ def parse_remediation_ptfs(
     for table_rows in extractor.tables:
         if not table_rows:
             continue
+
+        # --- transposed "matrix" fix table: releases in the column headers, the
+        # first data column a per-row label such as a CVE id, the remaining
+        # columns holding that release's PTF (or 'Not affected'). Detected and
+        # handled separately, then skipped from the normal (row) path.
+        m_idx, m_hdr = _find_matrix_header(table_rows)
+        if m_hdr is not None:
+            col_to_release, matrix_product, matrix_sw = _matrix_release_columns(m_hdr)
+            if col_to_release:
+                for r in table_rows:
+                    if r is m_hdr:
+                        continue
+                    if not any(_cell_text(c) for c in r):
+                        continue
+                    cve = extract_cve(_cell_text(r[0])) if r else ""
+                    for j, release in col_to_release.items():
+                        ptf_raw = _cell_text(r[j]) if j < len(r) else ""
+                        if not ptf_raw.strip() or "not affected" in ptf_raw.lower():
+                            continue
+                        for ptf in extract_ptf_entries(ptf_raw):
+                            links = _collect_links(r, [j])
+                            link = _pick_link(links, ptf, synthesize=synthesize_links)
+                            key = (node, cve, release, matrix_sw, ptf, link)
+                            if key in seen:
+                                continue
+                            seen.add(key)
+                            records.append(
+                                _record(
+                                    node, release, matrix_sw, matrix_product, ptf, link,
+                                    field_cve_id=cve,
+                                    field_x_force_id=x_force_id,
+                                    field_x_force_url=x_force_url,
+                                )
+                            )
+                continue
 
         header_idx = _find_header_row(table_rows)
         header_row = table_rows[header_idx] if header_idx is not None else None
@@ -510,7 +664,12 @@ def parse_remediation_ptfs(
                 key = (node, base_release, sw_lvl, "", link)
                 if key not in seen:
                     seen.add(key)
-                    records.append(_record(node, base_release, sw_lvl, product, "", link))
+                    records.append(
+                        _record(node, base_release, sw_lvl, product, "", link,
+                                field_x_force_id=x_force_id,
+                                field_x_force_url=x_force_url,
+                        )
+                    )
                 continue
 
             n_links = len(links)
@@ -529,7 +688,12 @@ def parse_remediation_ptfs(
                     if key in seen:
                         continue
                     seen.add(key)
-                    records.append(_record(node, release, sw_lvl, product, ptf, link))
+                    records.append(
+                        _record(node, release, sw_lvl, product, ptf, link,
+                                field_x_force_id=x_force_id,
+                                field_x_force_url=x_force_url,
+                        )
+                    )
 
     return records
 
@@ -549,13 +713,20 @@ def collect_ptfs_for_entries(
     Each unique ``nid`` is fetched once (de-duplicated), parsed, and its PTF
     records collected. Network failures are reported but do not stop the run.
 
-    :param entries: Bulletin entries (from :func:`extract_table_entries`).
+    As a side effect, any entry that names **no CVE id** has its ``field_cve_id``
+    (and ``field_x_force_url``) backfilled in place from the node page's
+    X-Force vulnerability id, so a no-CVE node (e.g. 6591307) still yields a
+    non-empty identifier in the joined output.
+
+    :param entries: Bulletin entries (from :func:`extract_table_entries`);
+        backfilled in place when they lack a CVE id.
     :param log: Optional callable receiving one progress line per node.
     :return: ``(ptf_records, stats)`` where ``stats`` counts nodes fetched,
         nodes failed, and records produced.
     """
     all_records: List[Dict[str, Any]] = []
     seen_nodes: set = set()
+    xforce_by_node: Dict[str, str] = {}
     stats = {"nodes_fetched": 0, "nodes_failed": 0, "records": 0}
 
     for e in entries:
@@ -570,6 +741,9 @@ def collect_ptfs_for_entries(
             )
             if log:
                 log(f"node {nid} fetched ({len(page)} bytes)")
+            xfid = extract_xforce_id(page)
+            if xfid:
+                xforce_by_node[nid] = xfid
             recs = parse_remediation_ptfs(
                 page,
                 nid,
@@ -586,6 +760,17 @@ def collect_ptfs_for_entries(
 
         if delay:
             time.sleep(delay)
+
+    # Backfill no-CVE entries from the X-Force id found on the node page, so a
+    # node without a CVE still carries an identifier in the joined output.
+    for e in entries:
+        if str(e.get("field_cve_id") or "").strip():
+            continue
+        xfid = xforce_by_node.get(str(e.get("nid") or "").strip())
+        if xfid:
+            e["field_cve_id"] = xfid
+            if not str(e.get("field_x_force_url") or "").strip():
+                e["field_x_force_url"] = xforce_url_for(xfid)
 
     return all_records, stats
 
@@ -667,6 +852,7 @@ def export_ptfs_to_sqlite(
 FLAT_JOIN_COLUMNS = [
     "node",
     "field_cve_id",
+    "field_x_force_url",
     "field_product",
     "field_cvss_base_score",
     "field_pub_date",
@@ -688,9 +874,18 @@ def build_flat_join(
     (`nid`). PTF rows whose node has no bulletin context still appear, with empty
     context fields.
 
+    The CVE id on the output row is chosen so that:
+      * when a PTF record carries its own ``field_cve_id`` (the row label of a
+        transposed fix table), only the bulletin entry that shares *that* CVE is
+        paired, so the PTF stays attached to the right vulnerability;
+      * when a PTF record has no CVE but a node-level ``field_x_force_id`` was
+        found on a no-CVE page, that id fills the ``field_cve_id`` slot, with the
+        matching ``field_x_force_url``.
+
     :param bullets: Bulletin entries (from :func:`extract_table_entries`), each
         carrying an ``nid``.
-    :param ptfs: PTF records (from :func:`parse_remediation_ptfs`).
+    :param ptfs: PTF records (from :func:`parse_remediation_ptfs`); may carry
+        ``field_cve_id`` / ``field_x_force_id`` / ``field_x_force_url``.
     :return: Flat, joined rows ready for CSV/JSON output.
     """
     by_node: Dict[str, List[Dict[str, Any]]] = {}
@@ -699,39 +894,61 @@ def build_flat_join(
         if nid:
             by_node.setdefault(nid, []).append(b)
 
+    ptf_part = lambda p: {  # noqa: E731  closure kept for readability
+        "product": p.get("product", ""),
+        "ibm_i_release": p.get("ibm_i_release", ""),
+        "sw_lvl": p.get("sw_lvl", ""),
+        "ptf_number": p.get("ptf_number", ""),
+        "download_link": p.get("download_link", ""),
+    }
+
     rows: List[Dict[str, Any]] = []
     for p in ptfs:
         node = str(p.get("node") or "")
+        p_cve = str(p.get("field_cve_id") or "").strip()
+        p_xfid = str(p.get("field_x_force_id") or "").strip()
+        p_xfurl = str(p.get("field_x_force_url") or "").strip()
         matched = by_node.get(node)
+
         if not matched:
-            rows.append({
+            row = {
                 "node": node,
-                "field_cve_id": "",
+                "field_cve_id": p_cve or p_xfid,
+                "field_x_force_url": p_xfurl,
                 "field_product": "",
                 "field_cvss_base_score": "",
                 "field_pub_date": "",
                 "bulletin_url": "",
-                "product": p.get("product", ""),
-                "ibm_i_release": p.get("ibm_i_release", ""),
-                "sw_lvl": p.get("sw_lvl", ""),
-                "ptf_number": p.get("ptf_number", ""),
-                "download_link": p.get("download_link", ""),
-            })
+            }
+            row.update(ptf_part(p))
+            rows.append(row)
             continue
-        for b in matched:
-            rows.append({
+
+        # A PTF record that carries its own CVE (transposed-table row) is paired
+        # only with bulletin entries that share that CVE, falling back to all
+        # entries for the node when none match (keeps the data, never drops it).
+        if p_cve:
+            wanted = p_cve.lower()
+            cands = [b for b in matched if str(b.get("field_cve_id") or "").strip().lower() == wanted]
+            if not cands:
+                cands = matched
+        else:
+            cands = matched
+
+        for b in cands:
+            cve = p_cve or str(b.get("field_cve_id") or "").strip() or p_xfid
+            xfurl = str(b.get("field_x_force_url") or "").strip() or p_xfurl
+            row = {
                 "node": node,
-                "field_cve_id": str(b.get("field_cve_id") or ""),
+                "field_cve_id": cve,
+                "field_x_force_url": xfurl,
                 "field_product": str(b.get("field_product") or ""),
                 "field_cvss_base_score": str(b.get("field_cvss_base_score") or ""),
                 "field_pub_date": str(b.get("field_pub_date") or ""),
                 "bulletin_url": str(b.get("bulletin_url") or ""),
-                "product": p.get("product", ""),
-                "ibm_i_release": p.get("ibm_i_release", ""),
-                "sw_lvl": p.get("sw_lvl", ""),
-                "ptf_number": p.get("ptf_number", ""),
-                "download_link": p.get("download_link", ""),
-            })
+            }
+            row.update(ptf_part(p))
+            rows.append(row)
     return rows
 
 

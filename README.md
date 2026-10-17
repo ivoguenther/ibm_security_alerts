@@ -175,6 +175,20 @@ Notes
 - **Real download links are captured**, whether they are the canonical
   `…/fix-information?legacy=<PTF>` or an IBM `…/support/pages/<ptf>-…` URL; only
   when there is no link at all is one synthesized.
+- **Transposed "matrix" fix tables are auto-detected.** Some node pages (e.g.
+  `1097703`) lay the fix table out *the other way*: the IBM i releases sit in the
+  **column headers** (`IBM i 7.4 | IBM i 7.3 | IBM i 7.2`) and each data row begins
+  with a **row label such as a CVE id**, its remaining cells holding that
+  release's PTF (or `Not affected`). A table whose non-label columns carry two or
+  more version tokens is transposed automatically: every `Not affected`/empty cell
+  is skipped, and each PTF becomes a record that carries its row's CVE id in
+  `field_cve_id` so the flat join pairs PTFs with the *correct* vulnerability.
+- **No-CVE nodes fall back to the X-Force id.** A node that names no CVE (e.g.
+  `6591307`, `6551988`) still links to an X-Force record
+  (`…/xforce.ibmcloud.com/vulnerabilities/<id>`). That id is attached to the
+  records and, in the flat output, fills the empty `field_cve_id` slot (with the
+  `field_x_force_url` alongside it), so no PTF row is ever left without an
+  identifier.
 
 Concrete examples (from live node pages):
 ```
@@ -187,6 +201,14 @@ Concrete examples (from live node pages):
 6589203, 7.5, , SF99952 - 01, https://www.ibm.com/support/pages/sf99952-750-ibm-http-server-i-level-1
 6589203, 7.4, , SF99662 - 20, https://www.ibm.com/support/pages/sf99662-740-ibm-http-server-i-level-20
 6589203, 7.3, , SF99722 - 39, https://www.ibm.com/support/pages/sf99722-730-ibm-http-server-i-level-39
+
+# node 1097703 — a transposed matrix: releases in the headers, CVE per row
+1097703, CVE-2019-9517, , 7.4, SI70961, https://www.ibm.com/mysupport/s/fix-information?legacy=SI70961
+1097703, CVE-2019-9517, , 7.3, SI70970, https://www.ibm.com/mysupport/s/fix-information?legacy=SI70970
+1097703, CVE-2019-10098, , 7.2, SI71028, https://www.ibm.com/mysupport/s/fix-information?legacy=SI71028
+
+# node 6591307 — no CVE on the page; the X-Force id fills the CVE slot
+6591307, 220414, https://exchange.xforce.ibmcloud.com/vulnerabilities/220414, 7.5, 5770-DBM, SF99951, https://www.ibm.com/support/pages/ptf/SI79449
 ```
 
 ### Two-table model (join on `node = nid`)

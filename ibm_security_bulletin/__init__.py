@@ -19,11 +19,14 @@ from .node_parser import (
     build_flat_join,
     collect_ptfs_for_entries,
     export_ptfs_to_sqlite,
+    extract_cve,
     extract_ptf_entries,
     extract_versions,
+    extract_xforce_id,
     fetch_node_html,
     format_flat_csv,
     parse_remediation_ptfs,
+    xforce_url_for,
 )
 
 __version__ = "0.1.0"
@@ -46,5 +49,8 @@ __all__ = [
     "format_flat_csv",
     "extract_versions",
     "extract_ptf_entries",
+    "extract_cve",
+    "extract_xforce_id",
+    "xforce_url_for",
     "PTF_TABLE_COLUMNS",
 ]

@@ -15,21 +15,27 @@ from ibm_security_bulletin.node_parser import (
     _classify_columns,
     build_flat_join,
     export_ptfs_to_sqlite,
+    extract_cve,
     extract_ptf_base,
     extract_ptf_entries,
     extract_versions,
+    extract_xforce_id,
     fetch_node_html,  # noqa: F401  (imported here to catch import regressions)
     format_flat_csv,
     normalize_release,
     parse_remediation_ptfs,
+    xforce_url_for,
 )
 from ibm_security_bulletin.extractor import export_to_sqlite
 
 FIXTURE = os.path.join(os.path.dirname(__file__), "fixtures", "node_7288323.html")
+MATRIX_FIXTURE = os.path.join(os.path.dirname(__file__), "fixtures", "node_1097703.html")
+NO_CVE_FIXTURE = os.path.join(os.path.dirname(__file__), "fixtures", "node_6591307.html")
 
 
-def read_fixture() -> str:
-    with open(FIXTURE, encoding="utf-8", errors="replace") as f:
+def read_fixture(name: str = "node_7288323.html") -> str:
+    path = os.path.join(os.path.dirname(__file__), "fixtures", name)
+    with open(path, encoding="utf-8", errors="replace") as f:
         return f.read()
 
 # A node page with NO Remediation/Fixes table at all.
@@ -249,6 +255,149 @@ class TestParseRemediation(unittest.TestCase):
         self.assertEqual(extract_ptf_entries("SJ11497\nSF10345"), ["SJ11497", "SF10345"])
         self.assertEqual(extract_ptf_base("SF99662 - 20"), "SF99662")
         self.assertEqual(extract_ptf_base("SJ11497"), "SJ11497")
+
+
+# ---------------------------------------------------------------------------
+# Transposed "matrix" fix table (node 1097703) and X-Force id backfill.
+
+# A minimal transposed fix table: releases in the column headers, a CVE row label,
+# 'Not affected' cells, and a single shared PTF-per-release.
+MATRIX_MINIMAL = """
+<div class="field--name-field-remediation-fixes">
+  <table class="bx--data-table">
+    <thead><tr>
+      <th scope="row"></th>
+      <th>IBM i 7.4</th>
+      <th>IBM i 7.3</th>
+      <th>IBM i 7.2</th>
+    </tr></thead>
+    <tbody>
+      <tr>
+        <th scope="row">CVE-2019-9517</th>
+        <td>SI70961</td><td>SI70970</td><td>Not affected</td>
+      </tr>
+      <tr>
+        <th scope="row">CVE-2019-10097</th>
+        <td>SI71097</td><td>Not affected</td><td>Not affected</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+"""
+
+# A node page with no CVE id but an X-Force reference link.
+NO_CVE_WITH_XFORCE = """
+<div class="field--name-field-remediation-fixes">
+  <table border="1">
+    <tr><td>IBM i Release</td><td>5770-DBM PTF Number</td><td>PTF Download Link</td></tr>
+    <tr>
+      <td>7.5</td>
+      <td>SF99951</td>
+      <td><a href="https://www.ibm.com/support/pages/ptf/SI79449">SI79449</a></td>
+    </tr>
+  </table>
+  <p>See: <a href="https://exchange.xforce.ibmcloud.com/vulnerabilities/220414">X-Force</a></p>
+</div>
+"""
+
+
+class TestTransposedMatrix(unittest.TestCase):
+    def test_minimal_matrix_expands_release_and_cve(self):
+        recs = parse_remediation_ptfs(MATRIX_MINIMAL, "1097703")
+        by_key = {(r["field_cve_id"], r["ibm_i_release"]): r["ptf_number"] for r in recs}
+        # 'Not affected' cells never produce a PTF record.
+        self.assertEqual(by_key.get(("CVE-2019-9517", "7.4")), "SI70961")
+        self.assertEqual(by_key.get(("CVE-2019-9517", "7.3")), "SI70970")
+        self.assertEqual(by_key.get(("CVE-2019-10097", "7.4")), "SI71097")
+        self.assertNotIn(("CVE-2019-9517", "7.2"), by_key)
+        self.assertNotIn(("CVE-2019-10097", "7.3"), by_key)
+        for r in recs:
+            self.assertEqual(r["product"], "IBM i")
+            self.assertTrue(re.fullmatch(r"\d+\.\d+", r["ibm_i_release"]))
+            self.assertTrue(r["download_link"].endswith(
+                "legacy=%s" % r["ptf_number"]))
+
+    def test_live_fixture_1097703_matrix(self):
+        recs = parse_remediation_ptfs(read_fixture("node_1097703.html"), "1097703")
+        self.assertEqual(len(recs), 13)
+        by_key = {
+            (r["field_cve_id"], r["ibm_i_release"]): r["ptf_number"] for r in recs
+        }
+        self.assertEqual(by_key[("CVE-2019-9517", "7.4")], "SI70961")
+        self.assertEqual(by_key[("CVE-2019-10098", "7.4")], "SI71097")
+        self.assertEqual(by_key[("CVE-2019-10098", "7.2")], "SI71028")
+        # 7.2 only ever applies to the 10098/10092 rows.
+        self.assertEqual({k[1] for k, v in by_key.items() if v == "SI71028"}, {"7.2"})
+        self.assertTrue(all(re.fullmatch(r"\d+\.\d+", r["ibm_i_release"]) for r in recs))
+        self.assertTrue(all(r["field_cve_id"] for r in recs))
+
+    def test_matrix_flat_join_pairs_cve_to_ptf(self):
+        recs = parse_remediation_ptfs(MATRIX_MINIMAL, "1097703")
+        api_cves = [
+            "CVE-2019-9517", "CVE-2019-10081", "CVE-2019-10082", "CVE-2019-10097",
+        ]
+        bullets = [
+            {"nid": "1097703", "field_cve_id": c, "field_product": "IBM i",
+             "field_cvss_base_score": "High", "field_pub_date": "2019-12-19",
+             "bulletin_url": "https://www.ibm.com/support/pages/node/1097703"}
+            for c in api_cves
+        ]
+        flat = build_flat_join(bullets, recs)
+        # One flat row per (cve, release, ptf); a PTF only ever appears under its
+        # own CVE, so SI71097 is never paired with CVE-2019-9517.
+        self.assertEqual(len(flat), len(recs))
+        seen = {(f["field_cve_id"], f["ibm_i_release"]): f["ptf_number"] for f in flat}
+        # SI71097 belongs to CVE-2019-10097 and must never be paired with 9517.
+        self.assertEqual(seen[("CVE-2019-9517", "7.4")], "SI70961")
+        self.assertEqual(seen[("CVE-2019-9517", "7.3")], "SI70970")
+        self.assertEqual(seen[("CVE-2019-10097", "7.4")], "SI71097")
+        self.assertTrue(
+            all(v != "SI71097" for k, v in seen.items() if k[0] == "CVE-2019-9517")
+        )
+
+
+class TestXForceBackfill(unittest.TestCase):
+    def test_extract_cve_and_xforce_id(self):
+        self.assertEqual(extract_xforce_id(NO_CVE_WITH_XFORCE), "220414")
+        self.assertEqual(
+            xforce_url_for("220414"),
+            "https://exchange.xforce.ibmcloud.com/vulnerabilities/220414",
+        )
+        self.assertEqual(extract_xforce_id(NO_REMEDIATION), "")
+        self.assertEqual(extract_cve("label CVE-2019-9517 here"), "CVE-2019-9517")
+        self.assertEqual(extract_cve("no cve"), "")
+
+    def test_xforce_id_attached_to_records(self):
+        recs = parse_remediation_ptfs(NO_CVE_WITH_XFORCE, "6591307")
+        self.assertTrue(recs)
+        for r in recs:
+            self.assertEqual(r.get("field_x_force_id"), "220414")
+            self.assertEqual(
+                r.get("field_x_force_url"),
+                "https://exchange.xforce.ibmcloud.com/vulnerabilities/220414",
+            )
+            # The canonical PTF columns are still the ones that matter.
+            self.assertEqual(r["ibm_i_release"], "7.5")
+            self.assertEqual(r["sw_lvl"], "5770-DBM")
+            self.assertEqual(r["ptf_number"], "SF99951")
+
+    def test_xforce_fills_empty_cve_in_flat_join(self):
+        # A no-CVE node: flat join falls back to the node's X-Force id for the
+        # empty CVE slot and surfaces its URL.
+        recs = parse_remediation_ptfs(NO_CVE_WITH_XFORCE, "6591307")
+        bullet = {"nid": "6591307", "field_cve_id": "", "field_product": "IBM i",
+                  "field_cvss_base_score": "Low", "field_pub_date": "2022-06-09",
+                  "bulletin_url": "https://www.ibm.com/support/pages/node/6591307"}
+        flat = build_flat_join([bullet], recs)
+        for f in flat:
+            self.assertEqual(f["field_cve_id"], "220414")
+            self.assertEqual(
+                f["field_x_force_url"],
+                "https://exchange.xforce.ibmcloud.com/vulnerabilities/220414",
+            )
+        # And the CSV exposes the new column.
+        csv_text = format_flat_csv(flat)
+        self.assertIn("field_x_force_url", csv_text.splitlines()[0])
 
 
 class TestPersistenceAndJoin(unittest.TestCase):
